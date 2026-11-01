@@ -136,14 +136,17 @@ class TestJSONParser(TestCase):
         parser = JSONParser()
 
         # Default to strict
-        for value in ['Infinity', '-Infinity', 'NaN']:
+        for value in ['Infinity', '-Infinity', 'NaN', '1e999', '-1e999']:
             with pytest.raises(ParseError):
                 parser.parse(self.bytes(value))
+
+        assert parser.parse(self.bytes('1.5e308')) == 1.5e308
 
         parser.strict = False
         assert parser.parse(self.bytes('Infinity')) == float('inf')
         assert parser.parse(self.bytes('-Infinity')) == float('-inf')
         assert math.isnan(parser.parse(self.bytes('NaN')))
+        assert parser.parse(self.bytes('1e999')) == float('inf')
 
 
 class TestGetEncoding(TestCase):

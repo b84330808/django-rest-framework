@@ -192,6 +192,12 @@ class JsonFloatTests(TestCase):
         with self.assertRaises(ValueError):
             json.loads("NaN")
 
+        with self.assertRaises(ValueError):
+            json.loads("1e999")
+
+        with self.assertRaises(ValueError):
+            json.loads("[-1e999]")
+
 
 @override_settings(REST_FRAMEWORK={'STRICT_JSON': False})
 class NonStrictJsonFloatTests(JsonFloatTests):

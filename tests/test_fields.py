@@ -6,6 +6,7 @@ import uuid
 import warnings
 from decimal import ROUND_DOWN, ROUND_UP, Decimal
 from enum import auto
+from json import JSONDecoder  # noqa
 from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
@@ -2786,11 +2787,23 @@ class TestBinaryJSONField(FieldValues):
     ]
     invalid_inputs = [
         ('{"a": "unterminated string}', ['Value must be valid JSON.']),
+        ('{"a": 1e999}', ['Value must be valid JSON.']),
     ]
     outputs = [
         (['some', 'list', True, 1.23], b'["some", "list", true, 1.23]'),
     ]
     field = serializers.JSONField(binary=True)
+
+    def test_custom_decoder_parse_float(self):
+        """
+        A custom decoder class keeps control over how floats are parsed.
+        """
+        class DecimalDecoder(JSONDecoder):
+            def __init__(self, **kwargs):
+                super().__init__(parse_float=Decimal, **kwargs)
+
+        field = serializers.JSONField(binary=True, decoder=DecimalDecoder)
+        assert field.run_validation('[1.5]') == [Decimal('1.5')]
 
 
 # Tests for FileField.
